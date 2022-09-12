@@ -35,7 +35,8 @@ all: $(TARGET)-static
 ## test bpf dependency
 
 $(TARGET).bpf.o: $(TARGET).bpf.c
-	$(CLANG) $(CFLAGS) -target bpf -D__TARGET_ARCH_$(ARCH) -I$(OUTPUT) -c $< -o $@
+	# $(CLANG) $(CFLAGS) -target bpf -D__TARGET_ARCH_$(ARCH) -I$(OUTPUT) -c $< -o $@
+	$(CLANG) $(CFLAGS) -target bpf -D__TARGET_ARCH_x86 -I$(OUTPUT) -c $< -o $@
 
 ## test
 

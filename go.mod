@@ -1,4 +1,4 @@
-module github.com/aquasecurity/libbpfgo/selftest/perfbuffers
+module github.com/sokoide/ebpf-go
 
 go 1.19
 

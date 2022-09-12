@@ -3,12 +3,10 @@ package main
 import "C"
 
 import (
+	"fmt"
 	"os"
 	"syscall"
 	"time"
-
-	"encoding/binary"
-	"fmt"
 
 	bpf "github.com/aquasecurity/libbpfgo"
 )
@@ -45,13 +43,15 @@ func main() {
 	}
 
 	bpfModule.BPFLoadObject()
-	prog, err := bpfModule.GetProgram("kprobe__sys_mmap")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(-1)
-	}
 
-	_, err = prog.AttachKprobe("__x64_sys_mmap")
+	// prog, err := bpfModule.GetProgram("kprobe__sys_kill")
+	// _, err = prog.AttachKprobe("__x64_sys_kill")
+	// if err != nil {
+	// 	fmt.Fprintln(os.Stderr, err)
+	// 	os.Exit(-1)
+	// }
+	prog, err := bpfModule.GetProgram("tracepoint__sys_enter_kill")
+	_, err = prog.AttachTracepoint("syscalls", "sys_enter_kill")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(-1)
@@ -66,26 +66,18 @@ func main() {
 
 	rb.Start()
 
-	numberOfEventsReceived := 0
 	go func() {
 		for {
-			syscall.Mmap(999, 999, 999, 1, 1)
+			syscall.Kill(0, syscall.SIGCONT)
 			time.Sleep(time.Second / 2)
 		}
 	}()
-recvLoop:
 	for {
 		b := <-eventsChannel
-		if binary.LittleEndian.Uint32(b) != 2021 {
-			fmt.Fprintf(os.Stderr, "invalid data retrieved\n")
-			os.Exit(-1)
+		for _, x := range b {
+			fmt.Printf("%02x ", x)
 		}
-		fmt.Printf("%+v\n", b)
-
-		numberOfEventsReceived++
-		if numberOfEventsReceived > 5 {
-			break recvLoop
-		}
+		fmt.Println("")
 	}
 
 	// Test that it won't cause a panic or block if Stop or Close called multiple times
