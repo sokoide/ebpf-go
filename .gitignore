@@ -1,0 +1,5 @@
+hoge-static
+hoge-dynamic
+output
+tags
+*.o
